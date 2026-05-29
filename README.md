@@ -1,56 +1,73 @@
-# Welcome to your Expo app 👋
+# Clays Metronome
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A metronome app for iOS built with Expo SDK 56.
 
-## Get started
+## Features
 
-1. Install dependencies
+- BPM range 20–300 with slider, +/- buttons, and direct numeric entry
+- Tap tempo
+- Time signatures: 1/4, 2/4, 3/4, 4/4, 5/4, 6/4, 7/4, 8/4
+- Accent pattern — tap any beat dot to toggle accent on/off
+- Swing/shuffle slider (0–100%)
+- Subdivision: off, 8th, 16th, 8th triplet
+- Volume control
+- Haptic pulse on each beat (optional, off by default)
+- Visual beat flash overlay (optional, off by default)
+- Dark / Light / System theme
+- Accent color presets (green, blue, purple, orange, pink, red, teal, white)
+- All preferences persist across restarts
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- **Framework:** Expo SDK 56 with file-based routing (expo-router)
+- **Audio:** `expo-audio` — WAV files generated in JavaScript, written to cache via `expo-file-system`
+- **Haptics:** `expo-haptics`
+- **Storage:** Single `settings.json` in app cache via `expo-file-system`
+- **State:** React hooks (`useRef` for scheduler, `useState` for UI, `useContext` for theme/settings)
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting Started
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+**Important:** CoreAudio is broken on the iOS simulator (`kAudio_UnsupportedPropertyError -66680`). Audio will not play on a simulator. Use a physical device or run an EAS build.
 
-### Other setup steps
+## EAS Build
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Two profiles are configured in `eas.json`:
 
-## Learn more
+```bash
+# Development build (installed via Expo Go-like workflow)
+eas build --platform ios --profile development
 
-To learn more about developing your project with Expo, look at the following resources:
+# Production IPA
+eas build --platform ios --profile production
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Project Structure
 
-## Join the community
+```
+src/
+  app/
+    _layout.tsx        — Theme-aware root layout
+    index.tsx          — Main metronome screen
+    settings.tsx       — Theme, accent color, flash, haptics toggles
+  hooks/
+    use-metronome.ts   — Beat scheduler, swing, subdivision, haptics
+    use-theme.tsx      — ThemeProvider, settings persistence, accent colors
+  utils/
+    audio.ts           — WAV generation, file caching, AudioPlayer management
+  constants/
+    theme.ts           — Color palettes, accent presets, spacing, defaults
+```
 
-Join our community of developers creating universal apps.
+## Key Decisions
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- **`expo-audio` over `expo-av`** — `expo-av` is incompatible with SDK 56 (missing `ExpoModulesCore/EXEventEmitter.h`).
+- **WAV generated in JS** — 8-bit, 22050 Hz, 200ms. Written to cache as base64, loaded from `file://` URIs. No bundled assets needed.
+- **`seekTo(0).then(() => play())`** — ensures playback restarts from the beginning on rapid re-triggers.
+- **Scheduler uses `useCallback([])`** — empty deps; state changes that affect timing (BPM, swing) use refs. `setCurrentBeat()` is safe to call inside the while-loop because React state setters are stable.
+- **Single `settings.json`** — stores theme, volume, flashEnabled, hapticEnabled, and accentColor.
+- **Simulator audio** — if you need to test audio on a simulator, try `sudo killall coreaudiod` to restart the CoreAudio daemon.
