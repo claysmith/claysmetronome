@@ -24,7 +24,7 @@ export default function MetronomeScreen() {
   const insets = useSafeAreaInsets();
   const met = useMetronome();
   const colors = useColors();
-  const { volume, setVolume, flashEnabled } = useThemePreference();
+  const { volume, setVolume, flashEnabled, hapticEnabled } = useThemePreference();
 
   const [bpmEditing, setBpmEditing] = useState(false);
   const bpmInputRef = useRef<TextInput>(null);
@@ -32,6 +32,10 @@ export default function MetronomeScreen() {
   const bpmDisplayRef = useRef<Text>(null);
 
   const beatPulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    met.setHapticEnabled(hapticEnabled);
+  }, [hapticEnabled, met]);
 
   useEffect(() => {
     if (met.isPlaying && met.currentBeat >= 0) {

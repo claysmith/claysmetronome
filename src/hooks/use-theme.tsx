@@ -11,6 +11,7 @@ interface Settings {
   volume: number;
   flashEnabled: boolean;
   accentColor: string;
+  hapticEnabled: boolean;
 }
 
 const FILE_PATH = Paths.cache + '/settings.json';
@@ -25,9 +26,11 @@ interface ThemeContextValue {
   setFlashEnabled: (v: boolean) => void;
   accentColor: string;
   setAccentColor: (c: string) => void;
+  hapticEnabled: boolean;
+  setHapticEnabled: (v: boolean) => void;
 }
 
-const DEFAULT_SETTINGS: Settings = { theme: 'dark', volume: 0.8, flashEnabled: false, accentColor: 'green' };
+const DEFAULT_SETTINGS: Settings = { theme: 'dark', volume: 0.8, flashEnabled: false, accentColor: 'green', hapticEnabled: false };
 
 const ThemeContext = createContext<ThemeContextValue>({
   resolved: 'dark',
@@ -37,6 +40,8 @@ const ThemeContext = createContext<ThemeContextValue>({
   setVolume: () => {},
   flashEnabled: false,
   setFlashEnabled: () => {},
+  hapticEnabled: false,
+  setHapticEnabled: () => {},
   accentColor: 'green',
   setAccentColor: () => {},
 });
@@ -53,7 +58,8 @@ function loadSettings(): Settings {
         const volume = typeof parsed.volume === 'number' ? Math.max(0, Math.min(1, parsed.volume)) : DEFAULT_SETTINGS.volume;
         const flashEnabled = typeof parsed.flashEnabled === 'boolean' ? parsed.flashEnabled : DEFAULT_SETTINGS.flashEnabled;
         const accentColor = typeof parsed.accentColor === 'string' && AccentColors[parsed.accentColor] ? parsed.accentColor : DEFAULT_SETTINGS.accentColor;
-        return { theme, volume, flashEnabled, accentColor };
+        const hapticEnabled = typeof parsed.hapticEnabled === 'boolean' ? parsed.hapticEnabled : DEFAULT_SETTINGS.hapticEnabled;
+        return { theme, volume, flashEnabled, accentColor, hapticEnabled };
       }
     }
   } catch {}
@@ -104,6 +110,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setHapticEnabled = useCallback((v: boolean) => {
+    setSettings((prev) => {
+      const next = { ...prev, hapticEnabled: v };
+      saveSettings(next);
+      return next;
+    });
+  }, []);
+
   // Sync initial volume to audio on mount
   useEffect(() => {
     setAudioVolume(settings.volume);
@@ -116,7 +130,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     : preference;
 
   return (
-    <ThemeContext.Provider value={{ resolved, preference, setPreference, volume: settings.volume, setVolume, flashEnabled: settings.flashEnabled, setFlashEnabled, accentColor: settings.accentColor, setAccentColor }}>
+    <ThemeContext.Provider value={{ resolved, preference, setPreference, volume: settings.volume, setVolume, flashEnabled: settings.flashEnabled, setFlashEnabled, hapticEnabled: settings.hapticEnabled, setHapticEnabled, accentColor: settings.accentColor, setAccentColor }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -9,7 +9,7 @@ import { useTheme, useThemePreference } from '@/hooks/use-theme';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const colors = useTheme();
-  const { preference, setPreference, flashEnabled, setFlashEnabled, accentColor, setAccentColor } = useThemePreference();
+  const { preference, setPreference, flashEnabled, setFlashEnabled, hapticEnabled, setHapticEnabled, accentColor, setAccentColor } = useThemePreference();
 
   const LABELS: Record<string, string> = { dark: 'Dark', light: 'Light', system: 'System' };
 
@@ -103,6 +103,27 @@ export default function SettingsScreen() {
                     styles.toggleKnob,
                     flashEnabled ? styles.toggleKnobOn : styles.toggleKnobOff,
                     { backgroundColor: flashEnabled ? '#FFFFFF' : colors.textSecondary },
+                  ]}
+                />
+              </Pressable>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.rowLabel, { color: colors.text }]}>Haptic feedback</Text>
+              <Pressable
+                onPress={() => setHapticEnabled(!hapticEnabled)}
+                style={[
+                  styles.toggle,
+                  {
+                    backgroundColor: hapticEnabled ? colors.accent : colors.backgroundElement,
+                    borderColor: hapticEnabled ? colors.accent : colors.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.toggleKnob,
+                    hapticEnabled ? styles.toggleKnobOn : styles.toggleKnobOff,
+                    { backgroundColor: hapticEnabled ? '#FFFFFF' : colors.textSecondary },
                   ]}
                 />
               </Pressable>

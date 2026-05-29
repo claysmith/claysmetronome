@@ -25,6 +25,7 @@ interface UseMetronomeReturn extends MetronomeState {
   tap: () => void;
   setSwing: (swing: number) => void;
   setSubdivision: (s: Subdivision) => void;
+  setHapticEnabled: (v: boolean) => void;
   audioReady: boolean;
 }
 
@@ -68,6 +69,7 @@ export function useMetronome(): UseMetronomeReturn {
   const currentBeatRef = useRef(-1);
   const tapTimesRef = useRef<number[]>([]);
   const audioInitRef = useRef(false);
+  const hapticEnabledRef = useRef(false);
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;
@@ -131,10 +133,10 @@ export function useMetronome(): UseMetronomeReturn {
 
       if (isAccented) {
         playAccent();
-        void impactAsync(ImpactFeedbackStyle.Medium);
+        if (hapticEnabledRef.current) void impactAsync(ImpactFeedbackStyle.Medium);
       } else {
         playNormal();
-        void impactAsync(ImpactFeedbackStyle.Light);
+        if (hapticEnabledRef.current) void impactAsync(ImpactFeedbackStyle.Light);
       }
 
       currentBeatRef.current = (currentBeatRef.current + 1) % beatsRef.current;
@@ -275,6 +277,10 @@ export function useMetronome(): UseMetronomeReturn {
     setSubdivisionState(s);
   }, []);
 
+  const setHapticEnabled = useCallback((v: boolean) => {
+    hapticEnabledRef.current = v;
+  }, []);
+
   return {
     isPlaying,
     bpm,
@@ -292,6 +298,7 @@ export function useMetronome(): UseMetronomeReturn {
     tap,
     setSwing,
     setSubdivision,
+    setHapticEnabled,
     audioReady,
   };
 }
