@@ -27,6 +27,7 @@ export default function MetronomeScreen() {
   const { volume, setVolume, flashEnabled, hapticEnabled } = useThemePreference();
 
   const [bpmEditing, setBpmEditing] = useState(false);
+  const [bpmText, setBpmText] = useState('');
   const bpmInputRef = useRef<TextInput>(null);
 
   const bpmDisplayRef = useRef<Text>(null);
@@ -121,18 +122,19 @@ export default function MetronomeScreen() {
                   ref={bpmInputRef}
                   style={[styles.bpmInput, { color: colors.text, borderColor: colors.accent }]}
                   keyboardType="number-pad"
-                  defaultValue={String(bpm)}
+                  value={bpmText}
+                  onChangeText={setBpmText}
                   selectTextOnFocus
-                  onSubmitEditing={(e) => {
-                    const val = parseInt(e.nativeEvent.text, 10);
+                  onBlur={() => {
+                    const val = parseInt(bpmText, 10);
                     if (!isNaN(val)) met.setBpm(val);
                     setBpmEditing(false);
                   }}
-                  onBlur={() => setBpmEditing(false)}
                 />
               ) : (
                 <Pressable
                   onPress={() => {
+                    setBpmText(String(bpm));
                     setBpmEditing(true);
                     setTimeout(() => bpmInputRef.current?.focus(), 50);
                   }}
