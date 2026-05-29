@@ -73,7 +73,6 @@ export async function initAudio(): Promise<boolean> {
     accentPlayer = createAudioPlayer({ uri: accent.file.uri });
     normalPlayer = createAudioPlayer({ uri: normal.file.uri });
 
-    // Wait for players to load
     for (const p of [accentPlayer, normalPlayer]) {
       if (!p) continue;
       for (let tries = 0; tries < 100; tries++) {
@@ -86,6 +85,15 @@ export async function initAudio(): Promise<boolean> {
     if (ready) {
       accentPlayer!.volume = _volume;
       normalPlayer!.volume = _volume;
+
+      // Prime audio session — play then pause to activate AVAudioSession
+      try {
+        await accentPlayer!.seekTo(0);
+        accentPlayer!.play();
+        await new Promise((r) => setTimeout(r, 20));
+        accentPlayer!.pause();
+        await accentPlayer!.seekTo(0);
+      } catch {}
     } else {
       console.warn('Audio: players did not load');
     }
